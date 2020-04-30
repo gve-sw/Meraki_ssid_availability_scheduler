@@ -1,0 +1,766 @@
+<!--
+    Copyright (c) 2020 Cisco and/or its affiliates.
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.1 (the "License"). You may obtain a copy of the
+License at
+           https://developer.cisco.com/docs/licenses
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.
+-->
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="The design system sponsored by Cisco Brand">
+        <meta name="image" content="http://cisco-ui.cisco.com/assets/img/uikit-1200x630%402x.png">
+        <meta itemprop="name" content="Cisco UI Kit">
+        <meta itemprop="description" content="The design system sponsored by Cisco Brand">
+        <meta itemprop="image" content="http://cisco-ui.cisco.com">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Cisco UI Kit">
+        <meta name="twitter:description" content="The design system sponsored by Cisco Brand">
+        <meta property="og:title" content="Cisco UI Kit">
+        <meta property="og:description" content="The design system sponsored by Cisco Brand">
+        <meta property="og:image" content="https://cisco-ui.cisco.com/assets/img/uikit-1200x630%402x.png">
+        <meta property="og:url" content="http://cisco-ui.cisco.com">
+        <meta property="og:site_name" content="Cisco UI Kit">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:type" content="website">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <link rel="icon" type="image/png" href="img/favicon.png" sizes="196x196">
+        <link rel="icon" type="image/png" href="img/favicon.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="img/favicon.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="img/favicon.png" sizes="16x16">
+        <link rel="icon" type="image/png" href="img/favicon.png" sizes="128x128">
+        <link rel="icon" href="img/favicon.png" type="image/x-icon">
+        <meta name="application-name" content="Cisco UI Kit">
+        <meta name="msapplication-TileColor" content="#FFFFFF">
+        <meta name="msapplication-TileImage" content="img/mstile.png">
+        <meta name="msapplication-square70x70logo" content="img/mstile.png">
+        <meta name="msapplication-square150x150logo" content="img/mstile.png">
+        <meta name="msapplication-wide310x150logo" content="img/mstile.png">
+        <meta name="msapplication-square310x310logo" content="img/mstile.png">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>SSID Availability</title>
+
+        <link rel="stylesheet" href="{{ url_for('static',filename='css/cui-standard.min.css') }}">
+
+        <script src="https://code.jquery.com/jquery-3.0.0.min.js" integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0=" crossorigin="anonymous"></script>
+        <script src="../public/js/styleguide.js"></script>
+
+        <script type= text/javascript src="{{url_for('static',filename='js/button.js')}}"></script>
+
+
+         <script type=text/javascript>
+            // styling for the online status of the SSIDS
+            $(document).ready(function() {
+                $("#status span").each(function( index ) {
+                    if($(this).text() == "True"){
+                        $(this).text("Online")
+                    }
+
+                    else {
+                        $(this).text("Offline")
+                        $(this).attr('class', 'label label--danger');
+                    }
+                });
+             });
+        </script>
+
+        <script type=text/javascript>
+            // script to show the time range form for the respected SSID
+            $(document).ready(function() {
+              var test=[];
+            $("#ssid").submit(function(e) {
+                $.ajax({
+                data : {
+                    value : $("#input-type-select").val(),
+                    code : '3'
+                },
+                type : 'POST',
+                url : '/meraki',
+                dataType: 'json'
+            })
+
+            .done(function(data){
+              //using JSON data received from meraki_post() in views.py
+              //check if existing schedule in DB should have switch toggled to online or offline
+              if(data.toggle !== "on"){
+                $("#toggle").prop('checked',false);
+                $('#textbox1').text("Settings are set for times for which device is OFFLINE");
+              }
+              else {
+                $("#toggle").prop('checked',true);
+                $('#textbox1').text("Settings are set for times for which device is ONLINE");
+              }
+
+              //define array containerDiv to contain divs with the time schedule for each day
+              //define inner div to contain input for starting time and ending time for each day
+              var containerDiv=[];
+              var inner_div=[];
+              containerDiv.push(document.getElementById("monday_div"));
+              containerDiv.push(document.getElementById("tuesday_div"));
+              containerDiv.push(document.getElementById("wednesday_div"));
+              containerDiv.push(document.getElementById("thursday_div"));
+              containerDiv.push(document.getElementById("friday_div"));
+              containerDiv.push(document.getElementById("saturday_div"));
+              containerDiv.push(document.getElementById("sunday_div"));
+
+              for (var i =0; i<data.start_times.length;i+=1){
+                inner_div.push(containerDiv[i].getElementsByTagName("input"));
+              }
+              //this loop makes sure that time schedules get deleted from the display
+              //when you change ssids
+              for (var i = 0; i < data.start_times.length; i += 1) {
+                //check for each possible day
+                if(i===0)
+                  family_size=$('#container_monday').children().length;
+                else if(i===1)
+                  family_size=$('#container_tuesday').children().length;
+                else if(i===2)
+                  family_size=$('#container_wednesday').children().length;
+                else if(i===3)
+                  family_size=$('#container_thursday').children().length;
+                else if(i===4)
+                  family_size=$('#container_friday').children().length;
+                else if(i===5)
+                  family_size=$('#container_saturday').children().length;
+                else if(i===6)
+                  family_size=$('#container_sunday').children().length;
+                //delete time input elements until only one for each day
+                while(family_size > 1){
+                  containerDiv[i].parentNode.removeChild(containerDiv[i].parentNode.lastChild);
+                  family_size=family_size-1;
+                }
+              }
+              //iterate through start and end times lists that have been returned
+              //and update the value of the time input element to match what is in each list.
+              //if more than one start time exists for a day - clone the element,
+              //set value attribute, and append it as a child to the existing parent.
+              //loop for each day
+              for (var i = 0; i < data.start_times.length; i += 1) {
+                //loop for all start times
+                for (var j = 0; j < data.start_times[i].length; j += 1) {
+                  //if only one start time just set value of time inputs
+                  if(j===0){
+                    inner_div[i][0].value=data.start_times[i][j];
+                    inner_div[i][1].value=data.end_times[i][j];
+                  }
+                //if more than one start time exists, clone, write value and append
+                  else if(j>0){
+                    var clone=containerDiv[i].cloneNode(true);
+                    input_clone=clone.getElementsByTagName("input");
+                    input_clone[0].value=data.start_times[i][j];
+                    input_clone[1].value=data.end_times[i][j];
+                    containerDiv[i].parentNode.appendChild(clone);
+                  }
+                }
+            }
+
+            });
+                e.preventDefault();
+                $("#hello").show();
+             });
+        });
+        </script>
+
+        <script type=text/javascript>
+            $(document).ready(function() {
+            $("#schedule").submit(function(e) {
+            var id = $("#input-type-select").val()
+            $('#ssid_id').val(id)
+             });
+        });
+        </script>
+
+
+        <script>
+        // script to add additional time ranges for each day of the week
+
+        $(document).ready(function(){
+            $("#monday_add").click(function(){
+                $("#monday_div").clone().insertAfter("#monday_div");
+            });
+
+            $("#monday_remove").click(function(){
+                if($('#container_monday').children().length == 1){
+                    return;
+                }
+                else {
+                    $('#container_monday').children().last().remove();
+                }
+            });
+
+            $("#tuesday_add").click(function(){
+                $("#tuesday_div").clone().insertAfter("#tuesday_div");
+            });
+
+            $("#tuesday_remove").click(function(){
+                if($('#container_tuesday').children().length == 1){
+                    return;
+                }
+                else {
+                    $('#container_tuesday').children().last().remove();
+                }
+            });
+
+            $("#wednesday_add").click(function(){
+                $("#wednesday_div").clone().insertAfter("#wednesday_div");
+            });
+
+            $("#wednesday_remove").click(function(){
+                if($('#container_wednesday').children().length == 1){
+                    return;
+                }
+                else {
+                    $('#container_wednesday').children().last().remove();
+                }
+            });
+
+            $("#thursday_add").click(function(){
+                $("#thursday_div").clone().insertAfter("#thursday_div");
+            });
+
+            $("#thursday_remove").click(function(){
+                if($('#container_thursday').children().length == 1){
+                    return;
+                }
+                else {
+                    $('#container_thursday').children().last().remove();
+                }
+            });
+
+            $("#friday_add").click(function(){
+                $("#friday_div").clone().insertAfter("#friday_div");
+            });
+
+            $("#friday_remove").click(function(){
+                if($('#container_friday').children().length == 1){
+                    return;
+                }
+                else {
+                    $('#container_friday').children().last().remove();
+                }
+            });
+
+            $("#saturday_add").click(function(){
+                $("#saturday_div").clone().insertAfter("#saturday_div");
+            });
+
+            $("#saturday_remove").click(function(){
+                if($('#container_saturday').children().length == 1){
+                    return;
+                }
+                else {
+                    $('#container_saturday').children().last().remove();
+                }
+            });
+
+            $("#sunday_add").click(function(){
+                $("#sunday_div").clone().insertAfter("#sunday_div");
+            });
+
+            $("#sunday_remove").click(function(){
+                if($('#container_sunday').children().length == 1){
+                    return;
+                }
+                else {
+                    $('#container_sunday').children().last().remove();
+                }
+            });
+        });
+        </script>
+
+        <script>
+        $(document).ready(function(){
+            $('#checkbox1').change(function(){
+                if(this.checked){
+                    $('#container_monday').fadeIn('slow');
+                    $('#add_monday').fadeIn('slow');
+                    $('#remove_monday').fadeIn('slow');
+                }
+
+                else{
+                    $('#container_monday').fadeOut('slow');
+                    $('#add_monday').fadeOut('slow');
+                    $('#remove_monday').fadeOut('slow');
+                }
+            });
+
+            $('#checkbox2').change(function(){
+                if(this.checked){
+                    $('#container_tuesday').fadeIn('slow');
+                    $('#add_tuesday').fadeIn('slow');
+                    $('#remove_tuesday').fadeIn('slow');
+                }
+
+                else{
+                    $('#container_tuesday').fadeOut('slow');
+                    $('#add_tuesday').fadeOut('slow');
+                    $('#remove_tuesday').fadeOut('slow');
+                }
+            });
+
+
+            $('#checkbox3').change(function(){
+                if(this.checked){
+                    $('#container_wednesday').fadeIn('slow');
+                    $('#add_wednesday').fadeIn('slow');
+                    $('#remove_wednesday').fadeIn('slow');
+                }
+
+                else{
+                    $('#container_wednesday').fadeOut('slow');
+                    $('#add_wednesday').fadeOut('slow');
+                    $('#remove_wednesday').fadeOut('slow');
+                }
+            });
+
+
+            $('#checkbox4').change(function(){
+                if(this.checked){
+                    $('#container_thursday').fadeIn('slow');
+                    $('#add_thursday').fadeIn('slow');
+                    $('#remove_thursday').fadeIn('slow');
+                }
+
+                else{
+                    $('#container_thursday').fadeOut('slow');
+                    $('#add_thursday').fadeOut('slow');
+                    $('#remove_thursday').fadeOut('slow');
+                }
+            });
+
+
+            $('#checkbox5').change(function(){
+                if(this.checked){
+                    $('#container_friday').fadeIn('slow');
+                    $('#add_friday').fadeIn('slow');
+                    $('#remove_friday').fadeIn('slow');
+                }
+
+                else{
+                    $('#container_friday').fadeOut('slow');
+                    $('#add_friday').fadeOut('slow');
+                    $('#remove_friday').fadeOut('slow');
+                }
+            });
+
+
+            $('#checkbox6').change(function(){
+                if(this.checked){
+                    $('#container_saturday').fadeIn('slow');
+                    $('#add_saturday').fadeIn('slow');
+                    $('#remove_saturday').fadeIn('slow');
+                }
+
+                else{
+                    $('#container_saturday').fadeOut('slow');
+                    $('#add_saturday').fadeOut('slow');
+                    $('#remove_saturday').fadeOut('slow');
+                }
+            });
+
+
+            $('#checkbox7').change(function(){
+                if(this.checked){
+                    $('#container_sunday').fadeIn('slow');
+                    $('#add_sunday').fadeIn('slow');
+                    $('#remove_sunday').fadeIn('slow');
+                }
+
+                else{
+                    $('#container_sunday').fadeOut('slow');
+                    $('#add_sunday').fadeOut('slow');
+                    $('#remove_sunday').fadeOut('slow');
+                }
+            });
+
+
+});
+        </script>
+
+        <script>
+            $(document).ready(function(){
+                 //set initial state.
+                 $('#textbox1').val($(this).is(':checked'));
+                 $('#textbox1').text("Settings are set for times for which device is ONLINE");
+
+                 $('#toggle').change(function() {
+                     if($(this).is(":checked")) {
+                        $('#textbox1').text("Settings are set for times for which device is ONLINE");
+                         }
+
+                    else{
+                        $('#textbox1').text("Settings are set for times for which device is OFFLINE");
+                    }
+    });
+
+            });
+        </script>
+
+
+    </head>
+    <body class="cui">
+        <nav class="header" id="styleguideheader" role="navigation">
+            <div class="container-fluid">
+                <div class="header-panels">
+                    <div class="header-panel hidden-md-down">
+                        <a class="header__logo" href="http://www.cisco.com" target="_blank">
+                            <span class="icon-cisco"></span>
+                        </a>
+                        <h1 class="header__title">
+                            <span>SSID Availability Page</span>
+                        </h1>
+                    </div>
+                    <div class="header-panel header-panel--center base-margin-left base-margin-right hidden-lg-up">
+                        <a class="header__logo" href="http://www.cisco.com" target="_blank">
+                            <span class="icon-cisco"></span>
+                        </a>
+                    </div>
+                    <div class="header-panel header-panel--right hidden-md-down">
+                        <a href="../" class="header-item" title="UI Kit Home"><span class="icon-home"></span></a>
+                        <a href="{{ url_for('setting') }}" class="header-item">Settings</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <div class="content content--alt">
+        <p> {{date}} <p>
+            <div class="container-fluid">
+                <div class="row">
+
+                    <!-- Left Rail -->
+                    <div class="col-xl-3">
+                        <div class="section">
+
+                            <!-- Palette -->
+                            <div class="panel panel--loose panel--raised base-margin-bottom">
+                                <h2 class="subtitle">SSID(s) : {{network_name}}</h2>
+                                <hr>
+                                <div class="section" style="overflow-y: scroll; height:400px;">
+                                        <div class="row">
+                                        <div class="col-md-8 base-margin-bottom">
+                                                <h6>Name</h6>
+                                        </div>
+                                        <div class="col-md-4 base-margin-bottom">
+                                                <h6>Online Status</h6>
+                                        </div>
+                                    </div>
+                                            {% for ssid in ssids %}
+                                            <div class="row">
+                                                <div class="col-md-8 base-margin-bottom">
+                                                    <h6>{{ ssid.name }}</h6>
+                                                </div>
+                                                <div class="col-md-4 base-margin-bottom" id="status">
+                                                    <span class="label label--success">{{ ssid.enabled }}</span>
+                                                    <br>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                </div>
+                                    <div class="base-margin-bottom">
+                                        <div id="theme-colors"></div>
+                                    </div>
+                                    <div class="col-xl-8">
+                                        <h2 class="subtitle">Edit SSID Schedule</h2>
+                                        <hr>
+                                        <form class="ssids" id="ssid">
+                                            <div class="form-group base-margin-bottom" style="height:100px;">
+                                                <div class="form-group__text select">
+                                                    <select id="input-type-select" name="input-type-select">
+                                                        {% for ssid in ssids %}
+                                                        <option value="{{ssid.number}}+{{ssid.name}}">{{ ssid.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <br>
+                                                <button type= "submit" class="btn btn--secondary">Submit</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Rail -->
+                    <div class="col-xl-6">
+                        <div class="section" >
+                            <div class="panel panel--loose panel--raised base-margin-bottom">
+                                <h6>Welcome</h6>
+                            </div>
+                            <div class="panel panel--loose panel--raised base-margin-bottom"id="hello" style="display:none">
+                                <form method = "post" action="/meraki" id="schedule">
+                                    <label class="switch">
+                                        <input type="checkbox" checked="" name="switch" id="toggle">
+                                        <span class="switch__input"></span>
+                                    </label>
+                                    <h6 id="textbox1"></h6>
+                                    <input type="hidden" name="code" value="2">
+                                    <input type="hidden" name="network_id" value="{{id_network}}">
+                                    <input type="hidden" id="ssid_id" name="ssid_id" value="hello">
+                                    <div class="row">
+                                        <h6 id=ssid_name></h6>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-1 base-margin-bottom">
+                                            <label class="checkbox">
+                                            <input type="checkbox" checked="" id= "checkbox1" class="active">
+                                            <span class="checkbox__input"></span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom">
+                                            <h6>Mondays</h6>
+                                        </div>
+
+                                            <div id = "container_monday">
+                                                <div class="col-md-2 base-margin-bottom time" id='monday_div'>
+                                                      <input type="time" id="appt" name="start_monday">
+                                                      <input type="time" id="appt" name="end_monday">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 base-margin-bottom" id = "add_monday">
+                                                <div class="subheader">Add</div>
+                                                <button id= "monday_add"class="radio" type="button"></button>
+                                            </div>
+                                            <div class="col-md-2 base-margin-bottom"id = "remove_monday">
+                                                <div class="subheader">Remove</div>
+                                                <button id = "monday_remove" class="radio" type="button"></button>
+                                            </div>
+
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-1 base-margin-bottom">
+                                            <label class="checkbox">
+                                            <input type="checkbox" checked="" id= "checkbox2" class="active">
+                                            <span class="checkbox__input"></span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom">
+                                            <h6>Tuesdays</h6>
+                                        </div>
+                                        <div id = "container_tuesday">
+                                            <div class="col-md-2 base-margin-bottom time" id='tuesday_div'>
+                                                <input type="time" id="appt" name="start_tuesday">
+                                                <input type="time" id="appt" name="end_tuesday">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 base-margin-bottom" id="add_tuesday">
+                                            <div class="subheader">Add</div>
+                                            <button id= "tuesday_add" class="radio" type="button"></button>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom" id = "remove_tuesday">
+                                            <div class="subheader">Remove</div>
+                                            <button id = "tuesday_remove" class="radio" type="button"></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-1 base-margin-bottom">
+                                            <label class="checkbox">
+                                            <input type="checkbox" checked="" id= "checkbox3" class="active">
+                                            <span class="checkbox__input"></span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom">
+                                            <h6>Wednesday</h6>
+                                        </div>
+                                        <div id = "container_wednesday">
+                                            <div class="col-md-2 base-margin-bottom time" id='wednesday_div'>
+                                                <input type="time"  name="start_wednesday">
+                                                <input type="time"  name="end_wednesday">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 base-margin-bottom" id="add_wednesday">
+                                            <div class="subheader">Add</div>
+                                            <button id= "wednesday_add" class="radio" type="button"></button>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom" id="remove_wednesday">
+                                            <div class="subheader">Remove</div>
+                                            <button id = "wednesday_remove" class="radio" type="button"></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-1 base-margin-bottom">
+                                            <label class="checkbox">
+                                            <input type="checkbox" checked="" id= "checkbox4" class="active">
+                                            <span class="checkbox__input"></span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom">
+                                            <h6>Thursdays</h6>
+                                        </div>
+                                        <div id = "container_thursday">
+                                            <div class="col-md-2 base-margin-bottom time" id='thursday_div'>
+                                                <input type="time" id="appt" name="start_thursday">
+                                                <input type="time" id="appt" name="end_thursday">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 base-margin-bottom" id="add_thursday">
+                                            <div class="subheader">Add</div>
+                                            <button id= "thursday_add" class="radio" type="button"></button>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom" id="remove_thursday">
+                                            <div class="subheader">Remove</div>
+                                            <button id = "thursday_remove" class="radio" type="button"></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-1 base-margin-bottom">
+                                            <label class="checkbox">
+                                            <input type="checkbox" checked="" id= "checkbox5" class="active">
+                                            <span class="checkbox__input"></span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom">
+                                            <h6>Fridays</h6>
+                                        </div>
+                                        <div id = "container_friday">
+                                            <div class="col-md-2 base-margin-bottom time" id='friday_div'>
+                                                <input type="time" id="appt" name="start_friday">
+                                                <input type="time" id="appt" name="end_friday">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 base-margin-bottom" id="add_friday">
+                                            <div class="subheader">Add</div>
+                                            <button id= "friday_add" class="radio" type="button"></button>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom" id="remove_friday">
+                                            <div class="subheader">Remove</div>
+                                            <button id = "friday_remove" class="radio" type="button"></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-1 base-margin-bottom">
+                                            <label class="checkbox">
+                                            <input type="checkbox" checked="" id= "checkbox6" class="active">
+                                            <span class="checkbox__input"></span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom">
+                                            <h6>Saturdays</h6>
+                                        </div>
+                                        <div id = "container_saturday">
+                                            <div class="col-md-2 base-margin-bottom time" id='saturday_div'>
+                                                <input type="time" id="appt" name="start_saturday">
+                                                <input type="time" id="appt" name="end_saturday">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 base-margin-bottom" id="add_saturday">
+                                            <div class="subheader">Add</div>
+                                            <button id= "saturday_add" class="radio" type="button"></button>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom" id="remove_saturday">
+                                            <div class="subheader">Remove</div>
+                                            <button id = "saturday_remove" class="radio" type="button" ></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-1 base-margin-bottom">
+                                            <label class="checkbox">
+                                            <input type="checkbox" checked="" id= "checkbox7" class="active">
+                                            <span class="checkbox__input"></span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom">
+                                            <h6>Sundays</h6>
+                                        </div>
+                                        <div id = "container_sunday">
+                                            <div class="col-md-2 base-margin-bottom time" id='sunday_div'>
+                                                <input type="time" id="appt">
+                                                <input type="time" id="appt">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 base-margin-bottom" id="add_sunday">
+                                            <div class="subheader">Add</div>
+                                            <button id= "sunday_add" class="radio" type="button"></button>
+                                        </div>
+                                        <div class="col-md-2 base-margin-bottom" id="remove_sunday">
+                                            <div class="subheader">Remove</div>
+                                            <button id = "sunday_remove" class="radio" type="button"></button>
+                                        </div>
+                                    </div>
+
+                                    <div class = "row">
+                                            <button type= "submit" class="btn btn--secondary">Submit</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Rail -->
+                    <div class="col-xl-3">
+                        <div class="section">
+
+                            <!-- Accordion -->
+                            <div class="panel panel--loose panel--raised base-margin-bottom">
+                                <h2 class="subtitle">Organization(s)</h2>
+                                <hr>
+                                <div class="section">
+                                    {% for org in orgs %}
+                                    <div class="row">
+                                        <div class="col-md-7 base-margin-bottom">
+                                            <a href="/meraki/{{org.id}}">{{org.name}}</a>
+                                        </div>
+                                        <div class="col-md-5 base-margin-bottom" id="status">
+                                            <a href="{{org.url}}">Link to Dashboard</a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Networks -->
+                            <div class="panel panel--loose panel--raised base-margin-bottom">
+                                <h2 class="subtitle">Networks</h2>
+                                <hr>
+                                <div class="section">
+                                    {% for network in networks %}
+                                    <a href="/meraki/org/{{network.id}}">{{network.name}}</a>
+                                    <br>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="footer">
+                <div class="footer__links">
+                    <ul class="list list--inline">
+                        <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank">Contacts</a></li>
+                        <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank">Feedback</a></li>
+                        <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank">Help</a></li>
+                        <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank">Site Map</a></li>
+                        <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank">Terms & Conditions</a></li></li>
+                        <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank">Privacy Statement</a></li>
+                        <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank">Cookie Policy</a></li>
+                        <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank">Trademarks</a></li>
+                    </ul>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>
