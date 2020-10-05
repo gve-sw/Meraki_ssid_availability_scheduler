@@ -10,9 +10,25 @@ Web portal in which enables the user to set several time schedules for Meraki SS
 ### Prerequisites
 * Meraki API Key
 
-# Setup instructions
+-Choose between which way you would like to spin up your application prototype 
+
+# Setup instructions (Python)
+1. install and clone this repo onto a server that has python3 installed 
+2. install and create virtual environment (https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+2. install and create a virtual environment for your project (https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+3. enter the virtaul environment by running source (venv name)/bin/activate 
+4. install dependencies by running pip3 install -r requirements.txt file
+5. install and setup mongodb (https://www.freecodecamp.org/news/learn-mongodb-a4ce205e7739/)
+6. edit scheduler.py (line 6) and views.py (line 203) to include the path to your local file
+7. Run the flask server by entering the command python3 views.py then visit the web page
+8. Go to the settings page, then press the button only once to activate the cron job to reinforce the scheduling (crontab -l to verify cron job). Web page should ask for permission to make changes.
+8. Go to the settings page, then press the button only once to activate the cron job to reinforce the scheduling (crontab -l to verify cron job). You know the scheduler activates if the web pag asks for permissions to make changes.
+9. You are all set. Meraki API key will be asked to enter the page. Make sure the respective key has proper permissions to make changes to the network SSIDs
+
+# Setup instructions (Docker)
 Dockerized version was prepared by Matthew Quarisa on April 2020.
-Please see new documentation for running the application within a container.
+1. Navigate to the directory with the docker compose file and in the terminal 
+2. Enter two commands: “docker-compose build” followed by “docker-compose up”
 
 ### Screenshots
 
